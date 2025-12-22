@@ -88,7 +88,7 @@ curl -X POST http://localhost:8000/api/auth/token/ \\
 
 ## 📂 Project Structure
 - `assessment/`: Project configuration and core settings.
-- `licenses/`: (Coming Soon) The primary app containing models, views, and serializers for the License Service.
+- `api/`: The primary app containing models, views, and serializers for the License Service.
 - `.env`: Local environment variables.
 - `requirements.txt`: Python package dependencies.
 

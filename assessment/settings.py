@@ -52,6 +52,9 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'drf_spectacular',
+
+    # Local apps
+    'api',
 ]
 
 MIDDLEWARE = [
