@@ -154,3 +154,6 @@ cython_debug/
 
 # VS Code
 .vscode/
+
+# Batch executable
+run_migrations.bat

@@ -20,7 +20,7 @@ The service follows a monolithic architecture with a modular internal structure,
 1. **Brand A** calls `/api/provision/` with customer email.
 2. System generates **LicenseKey #1**.
 3. System creates **License #1** (Product: WP Rocket, Key: #1).
-4. **Brand A** calls `/api/licenses/` later to add **License #2** (Product: RocketCDN) to **Key #1**.
+4. **Brand A** calls `/api/provision/` later to add **License #2** (Product: RocketCDN) to **Key #1**.
 
 ## 3. Implementation vs. Design Decisions
 

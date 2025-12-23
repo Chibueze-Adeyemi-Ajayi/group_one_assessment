@@ -36,6 +36,5 @@ urlpatterns = [
     path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 
     # License Service endpoints
-    path('api/all/', include('api.urls')),
-    
+    path('api/', include('api.urls')),
 ]
