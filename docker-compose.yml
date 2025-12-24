@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=group_one_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: .Dockerfile
+    command: >
+      sh -c "python manage.py migrate &&
+            gunicorn --bind 0.0.0.0:8000 assessment.wsgi:application"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # We override DATABASE_URL here to point to the 'db' service instead of 'localhost'
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/group_one_db
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

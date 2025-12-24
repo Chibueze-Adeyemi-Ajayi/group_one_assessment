@@ -64,11 +64,19 @@ pip install -r requirements.txt
 ```
 
 ### 3. Environment Configuration
-Create a `.env` file in the `group_one/` directory:
+Create a `.env` file in the `group_one/` directory. You can either use a full connection string or individual components (preferred for Docker):
+
 ```env
 DEBUG=True
 SECRET_KEY=your-secret-key-change-this
-# DATABASE_URL=postgres://user:password@localhost:5432/group_one_db (Optional)
+
+# Option A: Individual components (Recommended for Docker Compose)
+DB_NAME=group_one_db
+DB_USER=postgres
+DB_PASSWORD=postgres
+
+# Option B: Full Connection String (Standard Django)
+# DATABASE_URL=postgres://user:password@localhost:5432/group_one_db
 ```
 
 ### 4. Database Setup
@@ -82,7 +90,25 @@ python manage.py createsuperuser  # Recommended for admin access
 python manage.py runserver
 ```
 
+### 🐳 Running with Docker Compose (Recommended)
+This will set up the API and a PostgreSQL database automatically:
+```bash
+docker-compose up --build
+```
+
 ---
+
+## 🧪 Testing
+Run the automated test suite to verify the logic (auth, seat limits, multi-tenancy):
+```bash
+python manage.py test api
+```
+
+---
+
+## 🔬 Observability & Performance
+- **Logging**: The application uses structured logging to track provisioning and activation events.
+- **Caching**: License status checks (`/api/status/`) are cached in-memory for 1 hour to ensure high performance under load.
 
 ## 🧪 Quick Test (Sample Request)
 Obtain a JWT token to authenticate as a Brand administrator:
