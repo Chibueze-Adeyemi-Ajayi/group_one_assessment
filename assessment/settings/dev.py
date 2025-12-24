@@ -6,7 +6,6 @@ ALLOWED_HOSTS = ['*']
 
 # Additional dev-only apps
 INSTALLED_APPS += [
-    'django_extensions',
 ]
 
 # The following configuration is only needed for Django apps.
