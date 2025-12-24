@@ -15,9 +15,10 @@ This service provides a centralized authority for the license lifecycle:
 ## 🛠 Tech Stack
 - **Framework**: Django REST Framework (DRF)
 - **Database**: PostgreSQL (Production) / SQLite3 (Development)
+- **Production Server**: uWSGI with Tini (Init process)
 - **Auth**: SimpleJWT (JSON Web Tokens)
 - **Documentation**: Swagger UI / drf-spectacular
-- **Configuration**: Django-environ (dotenv)
+- **Configuration**: Django-environ (dotenv) & Split Settings
 
 ## ✨ Features (Implemented)
 - **US1: Brand Provisioning**: Create license keys and multi-product licenses.
@@ -57,11 +58,11 @@ git clone https://github.com/Chibueze-Adeyemi-Ajayi/group_one_assessment.git
 cd group_one_assessment/group_one
 
 # Create a virtual environment
-python -m venv venv
-source venv/bin/Scripts/activate  # Windows: venv\\Scripts\\activate
+python3 -m venv .venv
+source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
 
-# Install dependencies
-pip install -r requirements.txt
+# Install development dependencies
+pip install -r requirements/dev.txt
 ```
 
 ### 3. Environment Configuration
@@ -83,26 +84,36 @@ DB_PASSWORD=postgres
 ### 4. Database Setup
 ```bash
 python manage.py migrate
-python manage.py createsuperuser  # Recommended for admin access
+python manage.py createsuperuser
 ```
 
 ### 5. Running the API
+By default, the app uses development settings:
 ```bash
 python manage.py runserver
 ```
-
-### 🐳 Running with Docker Compose (Recommended)
-This will set up the API and a PostgreSQL database automatically:
+To run with specific settings:
 ```bash
+export DJANGO_SETTINGS_MODULE=assessment.settings.prod  # or sets on Windows
+python manage.py runserver
+```
+
+### 🐳 Running with Docker Compose (Standardized)
+We use a high-performance development container with the following command:
+```bash
+# Start the development stack (App + Postgres)
 docker-compose up --build
 ```
+This uses `docker/app/dev.Dockerfile`. For production-like testing, the `docker/app/Dockerfile` uses **uWSGI**.
 
 ---
 
 ## 🧪 Testing
-Run the automated test suite to verify the logic (auth, seat limits, multi-tenancy):
+Run the automated test suite using the development settings:
 ```bash
-python manage.py test api
+pytest
+# OR
+python manage.py test api --settings=assessment.settings.dev
 ```
 
 ## 🏗 Continuous Integration (CI)
@@ -131,10 +142,14 @@ curl -X POST http://localhost:8000/api/auth/token/ \\
 ---
 
 ## 📂 Project Structure
-- `assessment/`: Project configuration and core settings.
-- `api/`: The primary app containing models, views, and serializers for the License Service.
+- `assessment/settings/`: Environment-specific settings (`base.py`, `dev.py`, `prod.py`).
+- `api/`: The primary app containing models, views, and serializers.
+- `docker/`: Standardized Dockerfiles for development and production.
+- `requirements/`: Modular dependency files (`base.txt`, `dev.txt`, `prod.txt`, `ci.txt`).
+- `pyproject.toml`: Centralized configuration for Python tools (Black, Isort, Pytest).
+- `uwsgi.ini`: Production server configuration.
+- `.github/workflows/`: CI/CD pipeline configuration.
 - `.env`: Local environment variables.
-- `requirements.txt`: Python package dependencies.
 
 ---
 

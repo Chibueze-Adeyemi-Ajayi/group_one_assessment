@@ -1,0 +1,4 @@
+-r ci.txt
+black
+flake8
+isort
