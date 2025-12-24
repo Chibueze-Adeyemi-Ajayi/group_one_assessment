@@ -84,17 +84,26 @@ class ProvisionLicenseView(views.APIView):
                         brand=brand
                     )
             
-            # Create the License (Entitlement)
+            # Create or UPDATE the License (Entitlement) - US1 logic refinement
             expires_at = timezone.now() + timedelta(days=data['expiration_days'])
-            license_obj = License.objects.create(
+            
+            # Using update_or_create to prevent "MultipleObjectsReturned" during activation
+            license_obj, created = License.objects.update_or_create(
                 license_key=lk,
                 product=product,
-                expires_at=expires_at,
-                total_seats=data['total_seats']
+                defaults={
+                    'expires_at': expires_at,
+                    'total_seats': data['total_seats'],
+                    'status': 'VALID' # Re-validate if it was suspended
+                }
             )
             
-            logger.info(f"License provisioned: {license_obj.id} for product {product.slug}")
-            return Response(LicenseKeySerializer(lk).data, status=status.HTTP_201_CREATED)
+            if created:
+                logger.info(f"New license provisioned: {license_obj.id} for product {product.slug}")
+            else:
+                logger.info(f"Existing license updated/renewed: {license_obj.id}")
+
+            return Response(LicenseKeySerializer(lk).data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
         
         logger.error(f"Provisioning validation failed: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -111,7 +120,17 @@ class ActivateLicenseView(views.APIView):
         if serializer.is_valid():
             data = serializer.validated_data
             lk = get_object_or_404(LicenseKey, key=data['license_key'])
-            license_obj = get_object_or_404(License, license_key=lk, product__slug=data['product_slug'])
+            
+            # Use filter().latest() instead of get_object_or_404 to handle existing duplicates 
+            # while the database is being cleaned up.
+            license_obj = License.objects.filter(
+                license_key=lk, 
+                product__slug=data['product_slug']
+            ).order_by('-created_at').first()
+
+            if not license_obj:
+                logger.error(f"Activation failed: License not found for key {lk.key} and product {data['product_slug']}")
+                return Response({"error": "License not found for this product/key."}, status=status.HTTP_404_NOT_FOUND)
             
             if not license_obj.is_active():
                 logger.warning(f"Activation candidate inactive: Key {lk.key}")

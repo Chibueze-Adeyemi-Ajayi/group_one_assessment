@@ -46,6 +46,9 @@ class License(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        unique_together = ('license_key', 'product')
+
     def is_active(self):
         if self.status != 'VALID':
             return False
