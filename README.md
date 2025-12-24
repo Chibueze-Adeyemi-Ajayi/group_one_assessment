@@ -33,6 +33,14 @@ Once the server is running, you can access interactive documentation:
 - **Swagger UI**: `http://localhost:8000/api/docs/`
 - **Redoc**: `http://localhost:8000/api/redoc/`
 
+### 📮 Postman Collection
+A pre-configured Postman collection is available in the root directory: `Centralized_License_Service.postman_collection.json`.
+
+**How to Import:**
+1. Open Postman and click **Import**.
+2. Drag and drop the `.json` file.
+3. The collection is pre-set with a `base_url` variable and includes a **Post-login script** that automatically saves your JWT token for subsequent requests.
+
 ---
 
 ## ⚙️ Local Setup

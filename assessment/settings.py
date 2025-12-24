@@ -165,4 +165,9 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'API documentation for Group One Assessment',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'TAGS': [
+        {'name': 'Auth', 'description': 'Authentication endpoints (JWT)'},
+        {'name': 'Brand', 'description': 'Brand and Product management'},
+        {'name': 'License', 'description': 'License provisioning and activation'},
+    ],
 }

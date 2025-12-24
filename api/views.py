@@ -9,7 +9,23 @@ from .serializers import (
     LicenseKeySerializer, LicenseSerializer, 
     ProvisionLicenseSerializer, ActivateLicenseSerializer
 )
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiTypes
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+
+@extend_schema_view(
+    post=extend_schema(tags=['Auth'])
+)
+class DecoratedTokenObtainPairView(TokenObtainPairView):
+    pass
+
+@extend_schema_view(
+    post=extend_schema(tags=['Auth'])
+)
+class DecoratedTokenRefreshView(TokenRefreshView):
+    pass
 
 class ProvisionLicenseView(views.APIView):
     """
@@ -18,7 +34,7 @@ class ProvisionLicenseView(views.APIView):
     """
     permission_classes = [permissions.IsAuthenticated] 
 
-    @extend_schema(request=ProvisionLicenseSerializer, responses={201: LicenseKeySerializer})
+    @extend_schema(request=ProvisionLicenseSerializer, responses={201: LicenseKeySerializer}, tags=['License'])
     def post(self, request):
         serializer = ProvisionLicenseSerializer(data=request.data)
         if serializer.is_valid():
@@ -26,16 +42,42 @@ class ProvisionLicenseView(views.APIView):
             brand = get_object_or_404(Brand, slug=data['brand_slug'])
             product = get_object_or_404(Product, brand=brand, slug=data['product_slug'])
             
-            # Find or create LicenseKey
-            if data.get('license_key'):
-                lk = get_object_or_404(LicenseKey, key=data['license_key'], brand=brand)
-            else:
-                lk = LicenseKey.objects.create(
-                    customer_email=data['customer_email'],
-                    brand=brand
-                )
+            license_key_str = data.get('license_key')
             
-            # Create the License
+            if license_key_str:
+                # 1. Check if this key exists anywhere in the system
+                existing_key = LicenseKey.objects.filter(key=license_key_str).first()
+                
+                if existing_key:
+                    # If it exists, it MUST belong to the same brand
+                    if existing_key.brand != brand:
+                        return Response(
+                            {"error": f"License key '{license_key_str}' is already assigned to another brand."},
+                            status=status.HTTP_409_CONFLICT
+                        )
+                    lk = existing_key
+                else:
+                    # If it doesn't exist at all, create it for this brand
+                    lk = LicenseKey.objects.create(
+                        key=license_key_str,
+                        customer_email=data['customer_email'],
+                        brand=brand
+                    )
+            else:
+                # 2. US1 Logic: If no key provided, check if user already has a key for THIS brand
+                lk = LicenseKey.objects.filter(
+                    customer_email=data['customer_email'], 
+                    brand=brand
+                ).first()
+                
+                # 3. Create new auto-generated key if user doesn't have one for this brand yet
+                if not lk:
+                    lk = LicenseKey.objects.create(
+                        customer_email=data['customer_email'],
+                        brand=brand
+                    )
+            
+            # Create the License (Entitlement)
             expires_at = timezone.now() + timedelta(days=data['expiration_days'])
             License.objects.create(
                 license_key=lk,
@@ -53,7 +95,7 @@ class ActivateLicenseView(views.APIView):
     """
     permission_classes = [permissions.AllowAny] 
 
-    @extend_schema(request=ActivateLicenseSerializer, responses={200: LicenseSerializer})
+    @extend_schema(request=ActivateLicenseSerializer, responses={200: LicenseSerializer}, tags=['License'])
     def post(self, request):
         serializer = ActivateLicenseSerializer(data=request.data)
         if serializer.is_valid():
@@ -85,11 +127,17 @@ class LicenseStatusView(views.APIView):
     """
     permission_classes = [permissions.AllowAny]
 
-    @extend_schema(responses={200: LicenseKeySerializer})
+    @extend_schema(responses={200: LicenseKeySerializer}, tags=['License'])
     def get(self, request, key):
         lk = get_object_or_404(LicenseKey, key=key)
         return Response(LicenseKeySerializer(lk).data)
 
+@extend_schema(
+    tags=['License'],
+    parameters=[
+        OpenApiParameter("email", OpenApiTypes.STR, OpenApiParameter.QUERY, description="Customer email to look up")
+    ]
+)
 class CustomerLicenseListView(generics.ListAPIView):
     """
     US6: Brands can list licenses by customer email across all brands.
@@ -103,6 +151,7 @@ class CustomerLicenseListView(generics.ListAPIView):
             return LicenseKey.objects.filter(customer_email=email)
         return LicenseKey.objects.none()
 
+@extend_schema(tags=['Brand'])
 class BrandListCreateView(generics.ListCreateAPIView):
     """
     API endpoint to list or create Brands.
@@ -111,6 +160,7 @@ class BrandListCreateView(generics.ListCreateAPIView):
     serializer_class = BrandSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+@extend_schema(tags=['Brand'])
 class ProductListCreateView(generics.ListCreateAPIView):
     """
     API endpoint to list or create Products for a brand.
