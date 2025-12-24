@@ -3,6 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python version](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
 [![Django version](https://img.shields.io/badge/Django-5.2-green)](https://www.djangoproject.com/)
+[![CI Status](https://github.com/Chibueze-Adeyemi-Ajayi/group_one_assessment/actions/workflows/ci.yml/badge.svg)](https://github.com/Chibueze-Adeyemi-Ajayi/group_one_assessment/actions)
 
 A high-performance, multi-tenant License Service designed to act as the single source of truth for licenses and entitlements across various brands (WP Rocket, Imagify, RankMath, etc.) within the **group.one** ecosystem.
 
@@ -103,6 +104,15 @@ Run the automated test suite to verify the logic (auth, seat limits, multi-tenan
 ```bash
 python manage.py test api
 ```
+
+## 🏗 Continuous Integration (CI)
+This project uses **GitHub Actions** for CI. On every push and pull request, the workflow:
+1.  Spins up a **PostgreSQL 15** service.
+2.  Installs all Python dependencies.
+3.  Runs database migrations.
+4.  Executes the automated test suite.
+
+The configuration can be found in `.github/workflows/ci.yml`.
 
 ---
 
