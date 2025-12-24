@@ -16,11 +16,15 @@ The service follows a monolithic architecture with a modular internal structure,
 - **License**: An entitlement for a specific Product, linked to a LicenseKey.
 - **Activation**: A specific instance (site URL/machine ID) using a License seat.
 
-### Flow Example (US1)
-1. **Brand A** calls `/api/provision/` with customer email.
+### Administrative Flow
+1. **Admin** creates a **Brand** via `POST /api/brands/`.
+2. **Admin** creates **Products** for that brand via `POST /api/products/`.
+
+### Provisioning Flow (US1)
+1. **Brand A** calls `POST /api/provision/` with customer email and product/brand slugs.
 2. System generates **LicenseKey #1**.
 3. System creates **License #1** (Product: WP Rocket, Key: #1).
-4. **Brand A** calls `/api/provision/` later to add **License #2** (Product: RocketCDN) to **Key #1**.
+4. **Brand A** can call `POST /api/provision/` again with the same email and a different product slug to add entitlements to the same key.
 
 ## 3. Implementation vs. Design Decisions
 

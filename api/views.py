@@ -5,6 +5,7 @@ from django.utils import timezone
 from datetime import timedelta
 from .models import Brand, Product, LicenseKey, License, Activation
 from .serializers import (
+    BrandSerializer, ProductSerializer,
     LicenseKeySerializer, LicenseSerializer, 
     ProvisionLicenseSerializer, ActivateLicenseSerializer
 )
@@ -15,7 +16,7 @@ class ProvisionLicenseView(views.APIView):
     US1: Brand can provision a license.
     Allows a brand to create a license key or add a product to an existing key.
     """
-    permission_classes = [permissions.IsAuthenticated] # In real life, check for Brand-specific permissions
+    permission_classes = [permissions.IsAuthenticated] 
 
     @extend_schema(request=ProvisionLicenseSerializer, responses={201: LicenseKeySerializer})
     def post(self, request):
@@ -50,7 +51,7 @@ class ActivateLicenseView(views.APIView):
     """
     US3: End-user product can activate a license.
     """
-    permission_classes = [permissions.AllowAny] # Products usually use a License Key, not a User Token
+    permission_classes = [permissions.AllowAny] 
 
     @extend_schema(request=ActivateLicenseSerializer, responses={200: LicenseSerializer})
     def post(self, request):
@@ -101,3 +102,19 @@ class CustomerLicenseListView(generics.ListAPIView):
         if email:
             return LicenseKey.objects.filter(customer_email=email)
         return LicenseKey.objects.none()
+
+class BrandListCreateView(generics.ListCreateAPIView):
+    """
+    API endpoint to list or create Brands.
+    """
+    queryset = Brand.objects.all()
+    serializer_class = BrandSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+class ProductListCreateView(generics.ListCreateAPIView):
+    """
+    API endpoint to list or create Products for a brand.
+    """
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    permission_classes = [permissions.IsAuthenticated]
