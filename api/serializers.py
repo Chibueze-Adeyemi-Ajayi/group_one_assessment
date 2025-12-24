@@ -1,3 +1,5 @@
+# Necessary searlizers for the models
+
 from rest_framework import serializers
 from .models import Brand, Product, LicenseKey, License, Activation
 
@@ -36,8 +38,6 @@ class LicenseKeySerializer(serializers.ModelSerializer):
     class Meta:
         model = LicenseKey
         fields = ['id', 'key', 'customer_email', 'brand', 'brand_name', 'licenses', 'created_at']
-
-# Specialized Serializers for User Stories
 
 class ProvisionLicenseSerializer(serializers.Serializer):
     brand_slug = serializers.SlugField()

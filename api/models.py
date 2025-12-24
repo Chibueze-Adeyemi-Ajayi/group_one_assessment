@@ -58,7 +58,8 @@ class License(models.Model):
 
 class Activation(models.Model):
     license = models.ForeignKey(License, on_delete=models.CASCADE, related_name='activations')
-    instance_id = models.CharField(max_length=255) # e.g. Site URL or Machine ID
+    # As stated at the assessment test, a Site URL or Machine ID would be used
+    instance_id = models.CharField(max_length=255)
     activated_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
